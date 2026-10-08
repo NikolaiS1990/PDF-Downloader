@@ -6,12 +6,12 @@ class FileHandler():
         self.__file_content: dict = {}
         self.__excel_gri_file_path: str = ""
         self.__metadata_excel_file_path: str = ""
-        self.__metadata_excel_file_path: str = ""
 
     def set_file_paths(
             self,
             excel_gri_file_path: str,
-            metadata_excel_file_path: str,
             metadata_excel_file_path: str
         ):
-        print("kaga")
+       
+       excel_gri_file_path
+
