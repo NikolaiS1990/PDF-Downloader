@@ -7,7 +7,9 @@ authors = [
     { name = "Nikolai Sandbeck", email = "sandbeck1990@protonmail.com" }
 ]
 requires-python = ">=3.14"
-dependencies = []
+dependencies = [
+    "pandas>=3.0.6",
+]
 
 [project.scripts]
 pdf-downloader = "pdf_downloader:main"
@@ -15,3 +17,11 @@ pdf-downloader = "pdf_downloader:main"
 [build-system]
 requires = ["uv_build>=0.12.12,<0.13.0"]
 build-backend = "uv_build"
+
+[dependency-groups]
+dev = [
+    "mypy>=2.4.0",
+    "pylint>=4.1.2",
+    "pytest>=9.1.1",
+    "pytest-cov>=7.1.0",
+]
