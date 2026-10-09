@@ -50,6 +50,15 @@ Windows:
 .venv\Scripts\activate
 ```
 
+# How to run the program
+```bash
+uv run pdf-downloader \
+    --output_path /path/to/output \
+    --download_path /path/to/download \
+    --excel_gri_file_path /path/to/gri.xlsx \
+    --metadata_excel_file_path /path/to/metadata.xlsx
+```
+
 # 🧪 Run unit tests (for developers)
 To run all unit tests, run this line
 ```bash
