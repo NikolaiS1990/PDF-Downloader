@@ -1,6 +1,8 @@
+# TODO: Needs to run pylint again.
+
 from typing import Optional
-import pandas as pd
 import logging
+import pandas as pd
 
 class FileHandler():
 
@@ -27,11 +29,24 @@ class FileHandler():
 
 
     def load_data(self) -> None:
-        # Selected columns mapping:
-        # A  -> BRnum
-        # AL -> Pdf_URL
-        # AM -> Report Html Address
-        # AP -> New download report status
+        """Load specific Excel file columns into memory as a pandas DataFrame.
+
+            Reads the Excel spreadsheet configured at ``self.__excel_gri_file_path``
+            using openpyxl and extracts target columns corresponding to:
+                - Column A: BRnum
+                - Column AL: Pdf_URL
+                - Column AM: Report Html Address
+                - Column AP: New download report status
+
+            If successful, updates ``self.__file_content`` with the loaded DataFrame.
+            Handles missing files, permission issues, invalid column configurations,
+            missing dependencies, and unexpected runtime exceptions internally by 
+            logging errors without re-raising exceptions.
+
+            Raises:
+                None: All exceptions (FileNotFoundError, PermissionError, ValueError,
+                    ImportError, Exception) are caught internally and logged.
+            """
 
         try:
             # Optional: log that the loading process has started
@@ -81,13 +96,15 @@ class FileHandler():
 
 
     def get_file_content(self) -> Optional[pd.DataFrame]:
-            if self.__file_content is None:
-                print("No data frame found, did you load it?")
-                return None
+        """Retrieve the loaded Excel file content as a DataFrame.
 
-            return self.__file_content
+        Returns:
+            Optional[pd.DataFrame]: The loaded pandas DataFrame containing target
+            columns if ``load_data()`` was successfully executed; otherwise ``None``.
+        """
 
+        if self.__file_content is None:
+            print("No data frame found, did you load it?")
+            return None
 
-
-
-
+        return self.__file_content
