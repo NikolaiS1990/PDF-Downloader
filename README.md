@@ -56,7 +56,9 @@ uv run pdf-downloader \
     --output_path /path/to/output \
     --download_path /path/to/download \
     --excel_gri_file_path /path/to/gri.xlsx \
-    --metadata_excel_file_path /path/to/metadata.xlsx
+    --metadata_excel_file_path /path/to/metadata.xlsx \
+    --download_link_column COLUMN \
+    --download_link_column_alternative COLUMN
 ```
 
 # 🧪 Run unit tests (for developers)

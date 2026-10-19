@@ -11,6 +11,7 @@ Author:
 
 import argparse
 import logging
+from pdf_downloader.components.file_handler import FileHandler
 
 class Main:
 
@@ -19,6 +20,7 @@ class Main:
     def __init__(self):
         self.__args = None
         self.logger.info("PDF Downloader initialized.")
+        self.__file_handler = FileHandler()
 
     def read_line_arguments(self):
         parser = argparse.ArgumentParser(description="PDF Downloader Arguments")
@@ -58,3 +60,7 @@ class Main:
         self.__args = parser.parse_args()
 
         self.logger.info("Arguments received: %s", self.__args)
+
+    def start_program(self) -> None:
+        self.__file_handler.set_file_path(self.__args.excel_gri_file_path)
+        self.__file_handler.load_data()
