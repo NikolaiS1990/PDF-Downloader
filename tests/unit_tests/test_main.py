@@ -12,7 +12,7 @@ class TestMain(unittest.TestCase):
         # Start patching FileHandler before Main() is initialized in setUp
         self.file_handler_patcher = patch("pdf_downloader.main.FileHandler")
         self.mock_file_handler_cls = self.file_handler_patcher.start()
-        
+
         # Now setUp can safely create Main() with the mock active
         self.main_app = Main()
 
@@ -22,6 +22,7 @@ class TestMain(unittest.TestCase):
 
     def test_init(self):
         """Test initialization instantiates the FileHandler component."""
+
         self.assertIsNotNone(self.main_app)
         self.mock_file_handler_cls.assert_called_once()
 
@@ -35,9 +36,9 @@ class TestMain(unittest.TestCase):
     ])
     def test_read_line_arguments_success(self):
         """Test command-line argument parsing successfully populates required arguments."""
-        self.main_app.read_line_arguments()
 
-        args = self.main_app._Main__args
+        self.main_app.read_line_arguments()
+        args = self.main_app.get_arguments()
         self.assertIsNotNone(args)
         self.assertEqual(args.output_path, "/test/output")
         self.assertEqual(args.download_path, "/test/download")
@@ -49,6 +50,7 @@ class TestMain(unittest.TestCase):
     ])
     def test_read_line_arguments_missing_required(self):
         """Test argument parsing raises SystemExit when required arguments are missing."""
+
         with self.assertRaises(SystemExit):
             self.main_app.read_line_arguments()
 
@@ -61,6 +63,7 @@ class TestMain(unittest.TestCase):
     ])
     def test_start_program(self):
         """Test start_program correctly passes the file path and triggers data loading."""
+
         mock_handler_instance = self.mock_file_handler_cls.return_value
 
         self.main_app.read_line_arguments()
@@ -68,3 +71,8 @@ class TestMain(unittest.TestCase):
 
         mock_handler_instance.set_file_path.assert_called_once_with("/test/file.xlsx")
         mock_handler_instance.load_data.assert_called_once()
+
+    def test_get_arguments_when_none(self):
+        """Test when there is no file content."""
+
+        self.assertEqual(self.main_app.get_arguments(), None)
