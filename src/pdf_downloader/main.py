@@ -42,12 +42,6 @@ class Main:
                                 help="Path for the GRI file")
 
         parser.add_argument(
-                                "--metadata_excel_file_path",
-                                required=True,
-                                help="Path for the metadata file."
-                            )
-
-        parser.add_argument(
                                 "--download_link_column",
                                 required=True,
                                 help="Column with links for downloading."
