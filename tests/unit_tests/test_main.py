@@ -28,11 +28,11 @@ class TestMain(unittest.TestCase):
 
     @patch("sys.argv", [
         "pdf_downloader",
-        "--output_path", "/test/output",
         "--download_path", "/test/download",
         "--excel_gri_file_path", "/test/file.xlsx",
-        "--download_link_column", "ColumnA",
-        "--download_link_column_alternative", "ColumnB"
+        "--download_link_column", "AL",
+        "--download_link_column_alternative", "AM",
+        "--download_status_column", "AP"
     ])
     def test_read_line_arguments_success(self):
         """Test command-line argument parsing successfully populates required arguments."""
@@ -40,9 +40,10 @@ class TestMain(unittest.TestCase):
         self.main_app.read_line_arguments()
         args = self.main_app.get_arguments()
         self.assertIsNotNone(args)
-        self.assertEqual(args.output_path, "/test/output")
         self.assertEqual(args.download_path, "/test/download")
-        self.assertEqual(args.excel_gri_file_path, "/test/file.xlsx")
+        self.assertEqual(args.download_link_column, "AL")
+        self.assertEqual(args.download_link_column_alternative, "AM")
+        self.assertEqual(args.download_status_column, "AP")
 
     @patch("sys.argv", [
         "pdf_downloader",
@@ -56,10 +57,11 @@ class TestMain(unittest.TestCase):
 
     @patch("sys.argv", [
         "pdf_downloader",
-        "--output_path", "/test/output",
         "--download_path", "/test/download",
         "--excel_gri_file_path", "/test/file.xlsx",
-        "--download_link_column", "ColumnA"
+        "--download_link_column", "AL",
+        "--download_link_column_alternative", "AM",
+        "--download_status_column", "AP"
     ])
     def test_start_program(self):
         """Test start_program correctly passes the file path and triggers data loading."""

@@ -12,11 +12,17 @@ class TestFileHandler(unittest.TestCase):
     def setUp(self):
         self.file_handler = FileHandler()
         self.__test_path = "data/mock_file.xlsx"
+        self.__test_download_column: str
+        self.__test_download_link_column_alternative: str
 
 
     def __mock_file_path(self):
 
-        self.file_handler.set_file_path(self.__test_path)
+        self.file_handler.set_download_info(
+            self.__test_path,
+            self.__test_download_column,
+            self.__test_download_link_column_alternative
+        )
 
         self.file_handler.load_data()
 
@@ -37,7 +43,11 @@ class TestFileHandler(unittest.TestCase):
         mock_read_excel.return_value = mock_df
 
         # Pass a clean test path right into the setter using self.file_handler
-        self.file_handler.set_file_path(self.__test_path)
+        self.file_handler.set_download_info(
+            self.__test_path,
+            self.__test_download_column,
+            self.__test_download_link_column_alternative
+        )
 
         # Act
         self.file_handler.load_data()
