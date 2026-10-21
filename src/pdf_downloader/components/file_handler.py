@@ -5,7 +5,7 @@ configuration, safe data loading via pandas with strict column filtering,
 exception handling, and structured logging.
 
 Classes:
-    FileHandler: Manages loading, validation, and retrieval of Excel data files.
+    FileHandler: Manages loading, validation, and retrieval of data files.
 
 Author:
     Nikolai Sandbeck

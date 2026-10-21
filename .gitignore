@@ -14,3 +14,6 @@ logs/
 
 # Customer data
 data/
+
+# Testing
+.coverage
