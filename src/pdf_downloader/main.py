@@ -55,6 +55,14 @@ class Main:
 
         self.logger.info("Arguments received: %s", self.__args)
 
+    def get_arguments(self) -> str | None:
+
+        if not self.__args:
+            return None
+
+        return self.__args
+
+
     def start_program(self) -> None:
         self.__file_handler.set_file_path(self.__args.excel_gri_file_path)
         self.__file_handler.load_data()

@@ -97,7 +97,7 @@ class FileHandler():
             self.__file_content = df
             success_msg = (
                 f"Successfully loaded {len(self.__file_content)} "
-                "rows and {len(self.__file_content.columns)} columns."
+                f"rows and {len(self.__file_content.columns)} columns."
             )
             self.logger.info(success_msg)
             print(success_msg)
