@@ -1,17 +1,44 @@
-# TODO: Needs to run pylint again.
+"""File Management for PDF Downloader.
+
+This module provides the FileHandler class to manage file path
+configuration, safe data loading via pandas with strict column filtering,
+exception handling, and structured logging.
+
+Classes:
+    FileHandler: Manages loading, validation, and retrieval of Excel data files.
+
+Author:
+    Nikolai Sandbeck
+"""
 
 from typing import Optional
 import logging
 import pandas as pd
 
 class FileHandler():
+    """Manages loading and parsing of data files for the PDF downloader.
+
+        This class handles file path configuration, safe reading via pandas, 
+        and exception and error logging for missing files, permission issues, 
+        and schema configurations.
+
+        Attributes:
+            __excel_gri_file_path: Internal string storing the target file path.
+            __file_content: Internal pandas DataFrame storing the loaded file data.
+            logger: Logger instance for recording errors, warnings, and success info.
+
+        Usage Example:
+            handler = FileHandler()
+            handler.set_file_path("data/gri_report.xlsx")
+            handler.load_data()
+            df = handler.get_file_content()
+        """
 
     logger = logging.getLogger(__name__)
 
     def __init__(self):
         self.__file_content: Optional[pd.DataFrame] = None
         self.__excel_gri_file_path: str = ""
-        self.__metadata_excel_file_path: str = ""
 
     # def set_file_paths(
     #         self,
@@ -20,7 +47,7 @@ class FileHandler():
     #     ):
 
     def set_file_path(self, excel_gri_file_path: str) -> None:
-        # Temporary setter method.
+        """Temporary setter method."""
 
         if not isinstance(excel_gri_file_path, str):
             raise ValueError("Error: excel_gri_file_path has to be an string.")
@@ -59,23 +86,35 @@ class FileHandler():
             )
 
             if df.empty:
-                msg = f"File loaded successfully, but contains no data: {self.__excel_gri_file_path}"
+                msg = (
+                    "File loaded successfully, but "
+                    f"contains no data: {self.__excel_gri_file_path}"
+                )
                 self.logger.warning(msg)
                 print(f"Warning: {msg}")
                 return
 
             self.__file_content = df
-            success_msg = f"Successfully loaded {len(self.__file_content)} rows and {len(self.__file_content.columns)} columns."
+            success_msg = (
+                f"Successfully loaded {len(self.__file_content)} "
+                "rows and {len(self.__file_content.columns)} columns."
+            )
             self.logger.info(success_msg)
             print(success_msg)
 
         except FileNotFoundError:
-            err_msg = f"Error: The file '{self.__excel_gri_file_path}' could not be found. Please check the file path."
+            err_msg = (
+                f"Error: The file '{self.__excel_gri_file_path}' "
+                "could not be found. Please check the file path."
+            )
             self.logger.error(err_msg)
             print(err_msg)
 
         except PermissionError:
-            err_msg = f"Error: Permission denied. Can't open '{self.__excel_gri_file_path}' right now."
+            err_msg = (
+                "Error: Permission denied. "
+                f"Can't open '{self.__excel_gri_file_path}' right now."
+            )
             self.logger.error(err_msg)
             print(err_msg)
 
