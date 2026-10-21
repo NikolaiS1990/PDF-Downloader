@@ -8,3 +8,12 @@ wheels/
 
 # Virtual environments
 .venv
+
+# log files
+logs/
+
+# Customer data
+data/
+
+# Testing
+.coverage
