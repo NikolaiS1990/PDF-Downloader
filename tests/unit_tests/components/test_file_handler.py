@@ -47,6 +47,9 @@ class TestFileHandler(unittest.TestCase):
         self.assertIsNotNone(loaded_df)
         self.assertEqual(len(loaded_df), 2)
 
+        # Assert: Verify the getter retrieves a pandas dataframe
+        self.assertIsInstance(self.file_handler.get_file_content(), pd.DataFrame)
+
         # 4. Assert: Verify read_excel was called with the exact parameters
         mock_read_excel.assert_called_once_with(
             self.__test_path,
@@ -126,3 +129,9 @@ class TestFileHandler(unittest.TestCase):
 
         expected_error_msg = f"An unexpected error occurred: {error_details}"
         mock_logger_instance.exception.assert_called_once_with(expected_error_msg)
+
+
+    def test_get_file_content_when_none(self):
+        """Test when there is no file content."""
+
+        self.assertEqual(self.file_handler.get_file_content(), None)
