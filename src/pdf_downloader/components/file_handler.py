@@ -14,6 +14,7 @@ Author:
 from typing import Optional
 import logging
 import pandas as pd
+from openpyxl.utils import column_index_from_string
 
 class FileHandler():
     """Manages loading and parsing of data files for the PDF downloader.
@@ -24,7 +25,7 @@ class FileHandler():
 
         Attributes:
             __excel_gri_file_path: Internal string storing the target file path.
-            __file_content: Internal pandas DataFrame storing the loaded file data.
+            __work_dataframe: Internal pandas DataFrame storing the the needed loaded data.
             logger: Logger instance for recording errors, warnings, and success info.
 
         Usage Example:
@@ -37,8 +38,12 @@ class FileHandler():
     logger = logging.getLogger(__name__)
 
     def __init__(self):
-        self.__file_content: Optional[pd.DataFrame] = None
+        self.__work_dataframe: Optional[pd.DataFrame] = None
         self.__excel_gri_file_path: str = ""
+        self.__download_column: str
+        self.__download_link_column_alternative: str
+
+
 
     # def set_file_paths(
     #         self,
@@ -46,16 +51,32 @@ class FileHandler():
     #         metadata_excel_file_path: str
     #     ):
 
-    def set_file_path(self, excel_gri_file_path: str) -> None:
+    def set_download_info(
+            self,
+            excel_gri_file_path: str,
+            download_column: str,
+            download_link_column_alternative: str
+
+        ) -> None:
         """Temporary setter method."""
 
         if not isinstance(excel_gri_file_path, str):
             raise ValueError("Error: excel_gri_file_path has to be an string.")
 
+        if not isinstance(download_column, str):
+            raise ValueError("Error: excel_gri_file_path has to be an string.")
+
+        if not isinstance(download_link_column_alternative, str):
+            raise ValueError("Error: excel_gri_file_path has to be an string.")
+
         self.__excel_gri_file_path = excel_gri_file_path
+        self.__download_column = download_column
+        self.__download_link_column_alternative = download_link_column_alternative
 
 
-    def load_data(self) -> None:
+    def load_data(
+            self,
+        ) -> None:
         """Load specific Excel file columns into memory as a pandas DataFrame.
 
             Reads the Excel spreadsheet configured at ``self.__excel_gri_file_path``
@@ -63,9 +84,9 @@ class FileHandler():
                 - Column A: BRnum
                 - Column AL: Pdf_URL
                 - Column AM: Report Html Address
-                - Column AP: New download report status
 
-            If successful, updates ``self.__file_content`` with the loaded DataFrame.
+            If successful, updates ``self.__work_dataframe`` with a data frame which only
+            contains the ID column and the column with links + a new column with for download status.
             Handles missing files, permission issues, invalid column configurations,
             missing dependencies, and unexpected runtime exceptions internally by 
             logging errors without re-raising exceptions.
@@ -82,7 +103,11 @@ class FileHandler():
             df = pd.read_excel(
                 self.__excel_gri_file_path,
                 engine="openpyxl",
-                usecols="A, AL, AM, AP"
+                usecols=(
+                    "A,"
+                    f"{self.__download_column },"
+                    f"{self.__download_link_column_alternative}"
+                )
             )
 
             if df.empty:
@@ -91,13 +116,28 @@ class FileHandler():
                     f"contains no data: {self.__excel_gri_file_path}"
                 )
                 self.logger.warning(msg)
-                print(f"Warning: {msg}")
-                return
+                raise ValueError(msg)
 
-            self.__file_content = df
+
+            colum_names = df.columns
+
+            # Check if the ID column and columns with download links
+            # has any actual content.
+            for column in colum_names[:-1]:
+                if df[column].isnull().all():
+                    msg = f"Warning: Make sure {column} is not empty"
+                    self.logger.warning({msg})
+                    raise ValueError(msg)
+
+            df['Download Status'] = None
+            self.__work_dataframe = df
+
             success_msg = (
-                f"Successfully loaded {len(self.__file_content)} "
-                f"rows and {len(self.__file_content.columns)} columns."
+                f"Successfully loaded {len(self.__work_dataframe)} rows"
+                "\t-\t"
+                f"The needed columns {colum_names}"
+                "\t-\t"
+                f"And added the column {df.columns[-1]} "
             )
             self.logger.info(success_msg)
             print(success_msg)
@@ -142,8 +182,8 @@ class FileHandler():
             columns if ``load_data()`` was successfully executed; otherwise ``None``.
         """
 
-        if self.__file_content is None:
+        if self.__work_dataframe is None:
             print("No data frame found, did you load it?")
             return None
 
-        return self.__file_content
+        return self.__work_dataframe
