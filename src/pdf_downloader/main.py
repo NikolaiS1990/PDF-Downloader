@@ -14,7 +14,11 @@ import logging
 from pdf_downloader.components.file_handler import FileHandler
 
 class Main:
+    """Main controller class for the PDF Downloader application.
 
+    Attributes:
+        logger (logging.Logger): Logger instance for the Main class.
+    """
     logger = logging.getLogger(__name__)
 
     def __init__(self):
@@ -22,7 +26,9 @@ class Main:
         self.logger.info("PDF Downloader initialized.")
         self.__file_handler = FileHandler()
 
-    def read_line_arguments(self):
+    def read_line_arguments(self) -> None:
+        """Parse command-line arguments required for the PDF Downloader."""
+
         parser = argparse.ArgumentParser(description="PDF Downloader Arguments")
 
         parser.add_argument(
@@ -46,7 +52,9 @@ class Main:
         parser.add_argument(
             "--download_link_column_alternative",
             required=True,
-            help="Column with links for downloading if the a link in the first column does not work."
+            help=(
+                "Column with links for downloading if the a link in the first column does not work."
+            )
         )
 
         self.__args = parser.parse_args()
@@ -54,6 +62,7 @@ class Main:
         self.logger.info("Arguments received: %s", self.__args)
 
     def get_arguments(self) -> str | None:
+        """Return the parsed command-line arguments or None if uninitialized."""
 
         if not self.__args:
             return None
@@ -62,6 +71,8 @@ class Main:
 
 
     def start_program(self) -> None:
+        """Configure the file handler and initiate the data loading workflow."""
+
         self.__file_handler.set_download_info(
             self.__args.excel_gri_file_path,
             self.__args.download_link_column,

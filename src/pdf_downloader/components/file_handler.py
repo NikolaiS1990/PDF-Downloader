@@ -14,7 +14,6 @@ Author:
 from typing import Optional
 import logging
 import pandas as pd
-from openpyxl.utils import column_index_from_string
 
 class FileHandler():
     """Manages loading and parsing of data files for the PDF downloader.
@@ -86,9 +85,10 @@ class FileHandler():
                 - Column AM: Report Html Address
 
             If successful, updates ``self.__work_dataframe`` with a data frame which only
-            contains the ID column and the column with links + a new column with for download status.
-            Handles missing files, permission issues, invalid column configurations,
-            missing dependencies, and unexpected runtime exceptions internally by 
+            contains the ID column and the column with links + a new column with for
+            download status. Handles missing files, permission issues,
+            invalid column configurations, missing dependencies,
+            and unexpected runtime exceptions internally by 
             logging errors without re-raising exceptions.
 
             Raises:
