@@ -40,7 +40,7 @@ class FileHandler():
     def __init__(self):
         self.__work_dataframe: Optional[pd.DataFrame] = None
         self.__excel_gri_file_path: str = ""
-        self.__download_column: str
+        self.__download_link_column: str
         self.__download_link_column_alternative: str
 
 
@@ -54,7 +54,7 @@ class FileHandler():
     def set_download_info(
             self,
             excel_gri_file_path: str,
-            download_column: str,
+            download_link_column: str,
             download_link_column_alternative: str
 
         ) -> None:
@@ -63,14 +63,14 @@ class FileHandler():
         if not isinstance(excel_gri_file_path, str):
             raise ValueError("Error: excel_gri_file_path has to be an string.")
 
-        if not isinstance(download_column, str):
+        if not isinstance(download_link_column, str):
             raise ValueError("Error: excel_gri_file_path has to be an string.")
 
         if not isinstance(download_link_column_alternative, str):
             raise ValueError("Error: excel_gri_file_path has to be an string.")
 
         self.__excel_gri_file_path = excel_gri_file_path
-        self.__download_column = download_column
+        self.__download_link_column = download_link_column
         self.__download_link_column_alternative = download_link_column_alternative
 
 
@@ -105,7 +105,7 @@ class FileHandler():
                 engine="openpyxl",
                 usecols=(
                     "A,"
-                    f"{self.__download_column },"
+                    f"{self.__download_link_column},"
                     f"{self.__download_link_column_alternative}"
                 )
             )

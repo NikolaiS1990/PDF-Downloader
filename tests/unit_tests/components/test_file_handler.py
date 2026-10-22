@@ -12,7 +12,7 @@ class TestFileHandler(unittest.TestCase):
     def setUp(self):
         self.file_handler = FileHandler()
         self.__test_path = "data/mock_file.xlsx"
-        self.__test_download_column = "AL"
+        self.__test_download_link_column = "AL"
         self.__test_download_link_column_alternative = "AM"
 
 
@@ -20,7 +20,7 @@ class TestFileHandler(unittest.TestCase):
 
         self.file_handler.set_download_info(
             self.__test_path,
-            self.__test_download_column,
+            self.__test_download_link_column,
             self.__test_download_link_column_alternative
         )
 
@@ -36,7 +36,7 @@ class TestFileHandler(unittest.TestCase):
         # 1. Arrange: Provide a valid mock DataFrame
         mock_df = pd.DataFrame({
             "A": ["BR50041", "BR50042"],
-            self.__test_download_column: ["url1", "url2"],
+            self.__test_download_link_column: ["url1", "url2"],
             self.__test_download_link_column_alternative: ["url1", "url2"],
         })
         mock_read_excel.return_value = mock_df
@@ -44,7 +44,7 @@ class TestFileHandler(unittest.TestCase):
         # Pass a clean test path right into the setter using self.file_handler
         self.file_handler.set_download_info(
             self.__test_path,
-            self.__test_download_column,
+            self.__test_download_link_column,
             self.__test_download_link_column_alternative
         )
 
@@ -65,7 +65,7 @@ class TestFileHandler(unittest.TestCase):
             engine="openpyxl",
             usecols=(
                 "A,"
-                f"{self.__test_download_column },"
+                f"{self.__test_download_link_column },"
                 f"{self.__test_download_link_column_alternative}"
             )
         )
