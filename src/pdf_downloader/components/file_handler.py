@@ -37,7 +37,7 @@ class FileHandler():
 
     logger = logging.getLogger(__name__)
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.__work_dataframe: Optional[pd.DataFrame] = None
         self.__excel_gri_file_path: str = ""
         self.__download_link_column: str
