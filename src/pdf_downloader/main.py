@@ -19,6 +19,7 @@ class Main:
     Attributes:
         logger (logging.Logger): Logger instance for the Main class.
     """
+
     logger = logging.getLogger(__name__)
 
     def __init__(self):
