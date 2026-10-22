@@ -32,7 +32,6 @@ class TestMain(unittest.TestCase):
         "--excel_gri_file_path", "/test/file.xlsx",
         "--download_link_column", "AL",
         "--download_link_column_alternative", "AM",
-        "--download_status_column", "AP"
     ])
     def test_read_line_arguments_success(self):
         """Test command-line argument parsing successfully populates required arguments."""
@@ -43,7 +42,6 @@ class TestMain(unittest.TestCase):
         self.assertEqual(args.download_path, "/test/download")
         self.assertEqual(args.download_link_column, "AL")
         self.assertEqual(args.download_link_column_alternative, "AM")
-        self.assertEqual(args.download_status_column, "AP")
 
     @patch("sys.argv", [
         "pdf_downloader",
@@ -61,7 +59,6 @@ class TestMain(unittest.TestCase):
         "--excel_gri_file_path", "/test/file.xlsx",
         "--download_link_column", "AL",
         "--download_link_column_alternative", "AM",
-        "--download_status_column", "AP"
     ])
     def test_start_program(self):
         """Test start_program correctly passes the file path and triggers data loading."""
@@ -71,7 +68,11 @@ class TestMain(unittest.TestCase):
         self.main_app.read_line_arguments()
         self.main_app.start_program()
 
-        mock_handler_instance.set_file_path.assert_called_once_with("/test/file.xlsx")
+        mock_handler_instance.set_download_info.assert_called_once_with(
+            "/test/file.xlsx",
+            "AL",
+            "AM"
+        )
         mock_handler_instance.load_data.assert_called_once()
 
     def test_get_arguments_when_none(self):
