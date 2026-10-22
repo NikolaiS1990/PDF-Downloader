@@ -60,7 +60,11 @@ uv run pdf-downloader \
     --download_link_column_alternative COLUMN
 ```
 
-# 🧪 Run unit tests (for developers)
+## For developers
+
+## Before submitting
+
+### 🧪 Run unit tests (for developers)
 To run all unit tests, run this line
 ```bash
 uv run pytest tests/ -v
@@ -74,6 +78,16 @@ uv run pytest <filepath> -v
 See what test coverage percentage you have:
 ```bash
 uv run pytest --cov=src/pdf_downloader --cov-report=term-missing
+```
+
+### Let ruff catch syntax errors
+```bash
+uv run ruff check --fix <path to file>
+```
+
+### Run ruff formatter
+```bash
+uv run ruff format <path to file>
 ```
 
 # 📜 License

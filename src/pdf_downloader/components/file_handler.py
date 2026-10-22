@@ -174,6 +174,26 @@ class FileHandler():
             print(err_msg)
 
 
+    # def save_updated_spreadsheet(
+    #     self,
+    #     df: pd.DataFrame,
+    #     output_excel_path: str
+    #     ) -> None:
+    #     """Save the updated DataFrame with statuses to a NEW Excel copy.
+
+    #     Args:
+    #         df (pd.DataFrame): The DataFrame with updated status column.
+    #         output_excel_path (str): Filepath to save the new Excel spreadsheet copy.
+    #     """
+    #     try:
+    #         df.to_excel(output_excel_path, index=False, engine="openpyxl")
+    #         self.logger.info("Successfully saved updated spreadsheet to: %s", output_excel_path)
+    #         print(f"Updated copy saved to: {output_excel_path}")
+    #     except Exception as e:
+    #         self.logger.error("Failed to save updated Excel sheet: %s", e)
+    #         raise
+
+
     def get_file_content(self) -> Optional[pd.DataFrame]:
         """Retrieve the loaded Excel file content as a DataFrame.
 
