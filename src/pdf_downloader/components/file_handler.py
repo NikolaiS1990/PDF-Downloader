@@ -25,7 +25,7 @@ class FileHandler():
         Attributes:
             __excel_gri_file_path: Internal string storing the target file path.
             __work_dataframe: Internal pandas DataFrame storing the the needed loaded data.
-            logger: Logger instance for recording errors, warnings, and success info.
+            __logger: Logger instance for recording errors, warnings, and success info.
 
         Usage Example:
             handler = FileHandler()
@@ -34,7 +34,7 @@ class FileHandler():
             df = handler.get_file_content()
         """
 
-    logger = logging.getLogger(__name__)
+    __logger = logging.getLogger(__name__)
 
     def __init__(self) -> None:
         self.__work_dataframe: Optional[pd.DataFrame] = None
@@ -98,7 +98,7 @@ class FileHandler():
 
         try:
             # Optional: log that the loading process has started
-            self.logger.info("Attempting to load Excel file: %s", self.__excel_gri_file_path)
+            self.__logger.info("Attempting to load Excel file: %s", self.__excel_gri_file_path)
 
             df = pd.read_excel(
                 self.__excel_gri_file_path,
@@ -115,7 +115,7 @@ class FileHandler():
                     "File loaded successfully, but "
                     f"contains no data: {self.__excel_gri_file_path}"
                 )
-                self.logger.warning(msg)
+                self.__logger.warning(msg)
                 raise ValueError(msg)
 
 
@@ -126,7 +126,7 @@ class FileHandler():
             for column in colum_names[:-1]:
                 if df[column].isnull().all():
                     msg = f"Warning: Make sure {column} is not empty"
-                    self.logger.warning({msg})
+                    self.__logger.warning({msg})
                     raise ValueError(msg)
 
             df['Download Status'] = None
@@ -139,7 +139,7 @@ class FileHandler():
                 "\t-\t"
                 f"And added the column {df.columns[-1]} "
             )
-            self.logger.info(success_msg)
+            self.__logger.info(success_msg)
             print(success_msg)
 
         except FileNotFoundError:
@@ -147,7 +147,7 @@ class FileHandler():
                 f"Error: The file '{self.__excel_gri_file_path}' "
                 "could not be found. Please check the file path."
             )
-            self.logger.error(err_msg)
+            self.__logger.error(err_msg)
             print(err_msg)
 
         except PermissionError:
@@ -155,22 +155,22 @@ class FileHandler():
                 "Error: Permission denied. "
                 f"Can't open '{self.__excel_gri_file_path}' right now."
             )
-            self.logger.error(err_msg)
+            self.__logger.error(err_msg)
             print(err_msg)
 
         except ValueError as e:
             err_msg = f"Error with sheet or column configuration: {e}"
-            self.logger.error(err_msg)
+            self.__logger.error(err_msg)
             print(err_msg)
 
         except ImportError as e:
             err_msg = f"Error: Could not open the sheet: {e}"
-            self.logger.error(err_msg)
+            self.__logger.error(err_msg)
             print(err_msg)
 
         except Exception as e:
             err_msg = f"An unexpected error occurred: {e}"
-            self.logger.exception(err_msg)
+            self.__logger.exception(err_msg)
             print(err_msg)
 
 
@@ -187,10 +187,10 @@ class FileHandler():
     #     """
     #     try:
     #         df.to_excel(output_excel_path, index=False, engine="openpyxl")
-    #         self.logger.info("Successfully saved updated spreadsheet to: %s", output_excel_path)
+    #         self.__logger.info("Successfully saved updated spreadsheet to: %s", output_excel_path)
     #         print(f"Updated copy saved to: {output_excel_path}")
     #     except Exception as e:
-    #         self.logger.error("Failed to save updated Excel sheet: %s", e)
+    #         self.__logger.error("Failed to save updated Excel sheet: %s", e)
     #         raise
 
 
