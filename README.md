@@ -80,12 +80,13 @@ See what test coverage percentage you have:
 uv run pytest --cov=src/pdf_downloader --cov-report=term-missing
 ```
 
-### Let ruff catch syntax errors
+### 🧹 Linting
+#### Let ruff catch syntax errors
 ```bash
 uv run ruff check --fix <path to file>
 ```
 
-### Run ruff formatter
+#### Run ruff formatter
 ```bash
 uv run ruff format <path to file>
 ```
