@@ -16,5 +16,8 @@ logs/
 # Customer data
 data/
 
+# Downloaded PDFs
+downloaded_pdfs
+
 # Testing
 .coverage
