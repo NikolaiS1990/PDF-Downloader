@@ -13,6 +13,7 @@ Author:
 
 import logging
 import pathlib
+from datetime import datetime
 
 import pandas as pd
 
@@ -149,7 +150,6 @@ class FileHandler:
         """
 
         try:
-            # Optional: log that the loading process has started
             self.__logger.info(
                 "Attempting to load Excel file: %s", self.__excel_gri_file_path
             )
@@ -226,24 +226,65 @@ class FileHandler:
             self.__logger.exception(err_msg)
             print(err_msg)
 
-    # def save_updated_spreadsheet(
-    #     self,
-    #     df: pd.DataFrame,
-    #     output_excel_path: str
-    #     ) -> None:
-    #     """Save the updated DataFrame with statuses to a NEW Excel copy.
+    def save_updated_spreadsheet(
+        self,
+        status_series: pd.Series,
+    ) -> None:
+        """Saves a copy of the file with an added status column.
 
-    #     Args:
-    #         df (pd.DataFrame): The DataFrame with updated status column.
-    #         output_excel_path (str): Filepath to save the new Excel spreadsheet copy.
-    #     """
-    #     try:
-    #         df.to_excel(output_excel_path, index=False, engine="openpyxl")
-    #         self.__logger.info("Successfully saved updated spreadsheet to: %s", output_excel_path)
-    #         print(f"Updated copy saved to: {output_excel_path}")
-    #     except Exception as e:
-    #         self.__logger.error("Failed to save updated Excel sheet: %s", e)
-    #         raise
+        It loads the original Excel file, adds a new column for download status,
+        and saves the updated DataFrame to a new Excel file with the original
+        title and a timestamp.
+
+        The new file is saved in the same directory as the original file.
+
+        Args:
+            status_df (pd.DataFrame): The DataFrame with updated status column.
+        """
+
+        if self.__excel_gri_file_path == "":
+            msg = "You need to use set_download_info() first."
+            self.__logger.error(msg)
+            raise ValueError(msg)
+
+        if self.__work_dataframe is None:
+            msg = "You need to use load_data() before saving the updated spreadsheet."
+            self.__logger.error(msg)
+            raise ValueError(msg)
+
+        try:
+            self.__logger.info(
+                "Attempting to load Excel file: %s", self.__excel_gri_file_path
+            )
+
+            original_df = pd.read_excel(
+                self.__excel_gri_file_path,
+                engine="openpyxl",
+            )
+
+            original_df["Download Status"] = status_series
+
+            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+            new_file_name = (
+                pathlib.Path(self.__excel_gri_file_path).stem
+                + f"_updated_{timestamp}.xlsx"
+            )
+
+            new_file_path = (
+                pathlib.Path(self.__excel_gri_file_path).parent / new_file_name
+            )
+
+            original_df.to_excel(new_file_path, index=False, engine="openpyxl")
+            self.__logger.info(
+                "Successfully saved updated spreadsheet to: %s", new_file_path
+            )
+            print(f"Updated copy saved to: {new_file_path}")
+
+        except Exception as e:
+            err_msg = f"An unexpected error occurred: {e}"
+            self.__logger.exception(err_msg)
+            print(err_msg)
+            raise
 
     def get_file_content(self) -> pd.DataFrame | None:
         """Retrieve the loaded Excel file content as a DataFrame.

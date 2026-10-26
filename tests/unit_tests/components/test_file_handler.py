@@ -256,3 +256,110 @@ class TestFileHandler(unittest.TestCase):
         """Test when there is no file content."""
 
         self.assertEqual(self.file_handler.get_file_content(), None)
+
+    def test_save_updated_spreadsheet_without_load_data_raises_value_error(self):
+        """Test that save_updated_spreadsheet raises ValueError if load_data was not called first."""
+
+        mock_status_series = pd.Series(["Downloadet", "Ikke downloadet"])
+
+        # Configure path info so only the __work_dataframe check fails
+        self.file_handler.set_download_info(
+            self.__test_path,
+            self.__test_download_link_column,
+            self.__test_download_link_column_alternative,
+        )
+
+        expected_error_msg = (
+            "You need to use load_data() before saving the updated spreadsheet."
+        )
+
+        with self.assertRaises(ValueError) as context:
+            self.file_handler.save_updated_spreadsheet(mock_status_series)
+
+        self.assertEqual(str(context.exception), expected_error_msg)
+        self.assertIn(expected_error_msg, self.__caplog.text)
+
+    def test_save_updated_spreadsheet_without_set_download_info_raises_value_error(
+        self,
+    ):
+        """Test that save_updated_spreadsheet raises ValueError if set_download_info was not called first."""
+        mock_status_series = pd.Series(["Downloadet", "Ikke downloadet"])
+
+        expected_error_msg = "You need to use set_download_info() first."
+
+        # Act & Assert on a fresh instance (no name mangling needed!)
+        with self.assertRaises(ValueError) as context:
+            self.file_handler.save_updated_spreadsheet(mock_status_series)
+
+        self.assertEqual(str(context.exception), expected_error_msg)
+        self.assertIn(expected_error_msg, self.__caplog.text)
+
+    @patch("pandas.read_excel")
+    @patch("pandas.DataFrame.to_excel")
+    def test_save_updated_spreadsheet_success(self, mock_to_excel, mock_read_excel):
+        """Test successful execution of save_updated_spreadsheet using public methods."""
+        original_df = pd.DataFrame(
+            {
+                "BRnum": ["BR50041", "BR50042"],
+                "Company": ["Corp A", "Corp B"],
+            }
+        )
+        mock_read_excel.return_value = original_df
+
+        # Set up state entirely through the public API
+        self.file_handler.set_download_info(
+            self.__test_path,
+            self.__test_download_link_column,
+            self.__test_download_link_column_alternative,
+        )
+
+        # Populate work dataframe via public load method
+        with patch("pandas.read_excel", return_value=original_df):
+            self.file_handler.load_data()
+
+        status_series = pd.Series(
+            ["Downloadet", "Ikke downloadet"], name="Download Status"
+        )
+
+        # Act
+        with self.__caplog.at_level(logging.INFO):
+            self.file_handler.save_updated_spreadsheet(status_series)
+
+        # Assert
+        mock_to_excel.assert_called_once()
+        self.assertIn("Successfully saved updated spreadsheet to:", self.__caplog.text)
+
+    @patch("pandas.read_excel")
+    def test_save_updated_spreadsheet_handles_exception(self, mock_read_excel):
+        """Test save_updated_spreadsheet logs error and re-raises on unexpected exceptions."""
+        error_details = "Disk full or write error"
+
+        # Side effect sequence: 1st call for load_data succeeds, 2nd call for saving raises error
+        mock_read_excel.side_effect = [
+            pd.DataFrame(
+                {
+                    "A": ["BR50041", "BR50042"],
+                    self.__test_download_link_column: ["url1", "url2"],
+                    self.__test_download_link_column_alternative: ["url1", "url2"],
+                }
+            ),
+            RuntimeError(error_details),
+        ]
+
+        # Prepare state entirely through the public API (no name mangling)
+        self.file_handler.set_download_info(
+            self.__test_path,
+            self.__test_download_link_column,
+            self.__test_download_link_column_alternative,
+        )
+        self.file_handler.load_data()
+
+        status_series = pd.Series(["Downloadet", "Ikke downloadet"])
+
+        # Act & Assert exception re-raising
+        with self.assertRaises(RuntimeError):
+            self.file_handler.save_updated_spreadsheet(status_series)
+
+        # Assert logging happened
+        expected_log = f"An unexpected error occurred: {error_details}"
+        self.assertIn(expected_log, self.__caplog.text)
