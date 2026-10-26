@@ -2,7 +2,6 @@
 
 import logging
 import unittest
-from unittest.mock import patch
 
 import pandas as pd
 import pytest
@@ -31,7 +30,9 @@ class TestPdfFileDownloader(unittest.TestCase):
             self.assertRaises(ValueError) as context_none,
             self.__caplog.at_level(logging.WARNING),
         ):
-            self.pdf_file_downloader.download_reports(self.__test_download_path, df=None)
+            self.pdf_file_downloader.download_reports(
+                self.__test_download_path, df=None
+            )
 
         self.assertIn("DataFrame is empty or None", str(context_none.exception))
         self.assertIn("DataFrame is empty or None", self.__caplog.text)
@@ -40,8 +41,9 @@ class TestPdfFileDownloader(unittest.TestCase):
             self.assertRaises(ValueError) as context_empty,
             self.__caplog.at_level(logging.WARNING),
         ):
-            self.pdf_file_downloader.download_reports(self.__test_download_path, empty_df)
+            self.pdf_file_downloader.download_reports(
+                self.__test_download_path, empty_df
+            )
 
         self.assertIn("DataFrame is empty or None", str(context_empty.exception))
         self.assertIn("DataFrame is empty or None", self.__caplog.text)
-        
