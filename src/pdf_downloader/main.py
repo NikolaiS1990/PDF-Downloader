@@ -88,11 +88,10 @@ class Main:
         self.__file_handler.load_data()
 
         work_file_content = self.__file_handler.get_file_content()
+
         updated_status_column = self.__pdf_file_downloader.download_reports(
             self.__args.download_path,
             work_file_content
         )
 
-
-
-        # print(self.__file_handler.get_file_content())
+        self.__file_handler.save_updated_spreadsheet(updated_status_column)

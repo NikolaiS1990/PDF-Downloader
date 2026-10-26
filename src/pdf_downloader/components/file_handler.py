@@ -239,7 +239,7 @@ class FileHandler:
         The new file is saved in the same directory as the original file.
 
         Args:
-            status_df (pd.DataFrame): The DataFrame with updated status column.
+            status_series (pd.Series): The series with updated status values.
         """
 
         if self.__excel_gri_file_path == "":

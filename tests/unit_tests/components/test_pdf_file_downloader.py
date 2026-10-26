@@ -2,6 +2,8 @@
 
 import logging
 import unittest
+import urllib.error
+from unittest.mock import MagicMock, patch
 
 import pandas as pd
 import pytest
@@ -65,3 +67,88 @@ class TestPdfFileDownloader(unittest.TestCase):
         self.assertIn(
             "Download path 'non_existent_path' does not exist", self.__caplog.text
         )
+
+    @patch("pdf_downloader.components.pdf_file_downloader.urllib.request.urlopen")
+    @patch("os.path.exists")
+    def test_successful_primary_download(self, mock_path_exists, mock_urlopen):
+        """Test successful download on the primary URL."""
+        mock_path_exists.return_value = (
+            True  # Pretend download_path and saved file exist when checking
+        )
+
+        mock_response = MagicMock()
+        mock_response.read.return_value = b"%PDF-1.4 mock content"
+        mock_urlopen.return_value.__enter__.return_value = mock_response
+
+        df = pd.DataFrame(
+            {
+                "ID": ["001"],
+                "Primary": ["http://example.com/primary.pdf"],
+                "Alternative": ["http://example.com/alt.pdf"],
+                "Status": ["Pending"],
+            }
+        )
+
+        with patch("builtins.open", create=True):
+            status_series = self.pdf_file_downloader.download_reports(
+                "mock_download_path", df
+            )
+
+        self.assertEqual(status_series.iloc[0], "Downloadet")
+
+    @patch("pdf_downloader.components.pdf_file_downloader.urllib.request.urlopen")
+    @patch("os.path.exists")
+    @patch("os.remove")
+    def test_fallback_to_alternative_url_and_cleanup(
+        self, _mock_remove, mock_path_exists, mock_urlopen
+    ):
+        """Test that primary failure triggers alternative URL download, and total failure triggers file cleanup."""
+        mock_path_exists.side_effect = lambda path: True
+
+        mock_urlopen.side_effect = [
+            urllib.error.URLError("Primary connection timeout"),
+            MagicMock(read=lambda: b"%PDF-1.4 mock content"),
+        ]
+
+        df = pd.DataFrame(
+            {
+                "ID": ["002"],
+                "Primary": ["http://example.com/broken.pdf"],
+                "Alternative": ["http://example.com/working.pdf"],
+                "Status": ["Pending"],
+            }
+        )
+
+        with patch("builtins.open", create=True):
+            status_series = self.pdf_file_downloader.download_reports(
+                "mock_download_path", df
+            )
+
+        self.assertEqual(status_series.iloc[0], "Downloadet")
+
+    @patch("pdf_downloader.components.pdf_file_downloader.urllib.request.urlopen")
+    @patch("os.path.exists")
+    @patch("os.remove")
+    def test_total_download_failure_and_cleanup(
+        self, mock_remove, mock_path_exists, mock_urlopen
+    ):
+        """Test that if both primary and alternative fail, status is 'Ikke downloadet' and file is cleaned up."""
+        mock_path_exists.side_effect = lambda _path: True
+        mock_urlopen.side_effect = urllib.error.URLError("Connection refused")
+
+        df = pd.DataFrame(
+            {
+                "ID": ["003"],
+                "Primary": ["http://example.com/broken1.pdf"],
+                "Alternative": ["http://example.com/broken2.pdf"],
+                "Status": ["Pending"],
+            }
+        )
+
+        with patch("builtins.open", create=True):
+            status_series = self.pdf_file_downloader.download_reports(
+                "mock_download_path", df
+            )
+
+        self.assertEqual(status_series.iloc[0], "Ikke downloadet")
+        mock_remove.assert_called()

@@ -16,7 +16,6 @@ import logging
 import os
 import urllib.error
 import urllib.request
-from time import sleep
 
 import pandas as pd
 
@@ -129,7 +128,7 @@ class PdfFileDownloader:
 
         for idx, row in df.iterrows():
             # Respect server limits
-            sleep(2)
+            # sleep(2)
 
             # Fixed positions guarantee where data and status live
             record_id = str(row.iloc[0])
