@@ -19,12 +19,20 @@ class TestFileHandler(unittest.TestCase):
         self.__caplog = caplog
 
     def setUp(self):
+        self.path_patcher = patch("pathlib.Path.exists", return_value=True)
+        self.path_patcher.start()
+
         self.file_handler = FileHandler()
         self.__test_path = "data/mock_file.xlsx"
         self.__test_download_link_column = "AL"
         self.__test_download_link_column_alternative = "AM"
 
-    def __mock_file_path(self):
+    def tearDown(self):
+        # Stop the patcher after each test finishes
+        self.path_patcher.stop()
+
+    def __setup_and_attempt_load(self):
+        """Helper to configure file info, trigger load_data (which fails), and ensure content is None."""
 
         self.file_handler.set_download_info(
             self.__test_path,
@@ -35,6 +43,102 @@ class TestFileHandler(unittest.TestCase):
         self.file_handler.load_data()
 
         assert self.file_handler.get_file_content() is None
+
+    def test_set_download_info_invalid_types(self):
+        """Test that set_download_info raises ValueError for invalid types."""
+
+        expected_error_msg = (
+            "Expected a string for a path for an file, got <class 'int'>"
+        )
+
+        with self.assertRaises(TypeError) as excel_file_path_context_not_str_context:
+            self.file_handler.set_download_info(
+                123,
+                self.__test_download_link_column,
+                self.__test_download_link_column_alternative,
+            )
+
+        self.assertEqual(
+            str(excel_file_path_context_not_str_context.exception), expected_error_msg
+        )
+        self.assertIn(expected_error_msg, self.__caplog.text)
+
+        expected_error_msg = (
+            "Expected a string for download_link_column, got <class 'int'>"
+        )
+
+        with self.assertRaises(TypeError) as download_column_context_not_str_context:
+            self.file_handler.set_download_info(
+                self.__test_path, 1234, self.__test_download_link_column_alternative
+            )
+
+        self.assertEqual(
+            str(download_column_context_not_str_context.exception), expected_error_msg
+        )
+        self.assertIn(expected_error_msg, self.__caplog.text)
+
+        expected_error_msg = (
+            "Expected a string for download_link_column_alternative, got <class 'int'>"
+        )
+
+        with self.assertRaises(TypeError) as alternative_column_context_not_str_context:
+            self.file_handler.set_download_info(
+                self.__test_path, self.__test_download_link_column, 1234
+            )
+        self.assertEqual(
+            str(alternative_column_context_not_str_context.exception),
+            expected_error_msg,
+        )
+        self.assertIn(expected_error_msg, self.__caplog.text)
+
+    def test_set_download_info_empty_file_path(self):
+        """Test that set_download_info raises ValueError for empty file path."""
+
+        expected_error_msg = "A path for an excel file must be provided, got "
+
+        with self.assertRaises(ValueError) as no_path_context:
+            self.file_handler.set_download_info(
+                "",
+                self.__test_download_link_column,
+                self.__test_download_link_column_alternative,
+            )
+
+        self.assertEqual(str(no_path_context.exception), expected_error_msg)
+        self.assertIn(expected_error_msg, self.__caplog.text)
+
+    @patch("pathlib.Path.exists", return_value=False)
+    def test_set_download_info_nonexistent_file_path(self, _mock_exists):
+        """Test that set_download_info raises FileNotFoundError for nonexistent file path."""
+
+        expected_error_msg = "Path does not exist: data/nonexistent_file.xlsx."
+
+        with self.assertRaises(FileNotFoundError) as file_not_found_context:
+            self.file_handler.set_download_info(
+                "data/nonexistent_file.xlsx",
+                self.__test_download_link_column,
+                self.__test_download_link_column_alternative,
+            )
+
+        self.assertEqual(str(file_not_found_context.exception), expected_error_msg)
+        self.assertIn(expected_error_msg, self.__caplog.text)
+
+    def test_set_download_info_if_wrong_file_type(self):
+        """Test that set_download_info raises ValueError for wrong file type."""
+
+        expected_error_msg = "Expected an Excel file, got data/mock_file.txt"
+
+        with self.assertRaises(ValueError) as context:
+            self.file_handler.set_download_info(
+                "data/mock_file.txt",
+                self.__test_download_link_column,
+                self.__test_download_link_column_alternative,
+            )
+
+        # Assert the exception message is correct
+        self.assertEqual(str(context.exception), expected_error_msg)
+
+        # Assert the error was logged
+        self.assertIn(expected_error_msg, self.__caplog.text)
 
     @patch("pandas.read_excel")
     def test_load_data(self, mock_read_sheet):
@@ -89,7 +193,7 @@ class TestFileHandler(unittest.TestCase):
 
         mock_read_sheet.side_effect = FileNotFoundError("No such file or directory")
 
-        self.__mock_file_path()
+        self.__setup_and_attempt_load()
 
         # 4. Assert: Check that error logging was called with the expected message
         expected_error_msg = f"Error: The file '{self.__test_path}' could not be found. Please check the file path."
@@ -101,7 +205,7 @@ class TestFileHandler(unittest.TestCase):
 
         mock_read_excel.side_effect = PermissionError("Permission denied")
 
-        self.__mock_file_path()
+        self.__setup_and_attempt_load()
 
         expected_error_msg = (
             f"Error: Permission denied. Can't open '{self.__test_path}' right now."
@@ -116,7 +220,7 @@ class TestFileHandler(unittest.TestCase):
         error_details = "Usecols do not match columns, columns expected but not found"
         mock_read_excel.side_effect = ValueError(error_details)
 
-        self.__mock_file_path()
+        self.__setup_and_attempt_load()
 
         expected_error_msg = (
             f"Error with sheet or column configuration: {error_details}"
@@ -130,7 +234,7 @@ class TestFileHandler(unittest.TestCase):
         error_details = "Missing optional dependency 'openpyxl'"
         mock_read_excel.side_effect = ImportError(error_details)
 
-        self.__mock_file_path()
+        self.__setup_and_attempt_load()
 
         expected_error_msg = f"Error: Could not open the sheet: {error_details}"
         self.assertIn(expected_error_msg, self.__caplog.text)
@@ -143,7 +247,7 @@ class TestFileHandler(unittest.TestCase):
         error_details = "Something completely unexpected happened"
         mock_read_excel.side_effect = RuntimeError(error_details)
 
-        self.__mock_file_path()
+        self.__setup_and_attempt_load()
 
         expected_error_msg = f"An unexpected error occurred: {error_details}"
         self.assertIn(expected_error_msg, self.__caplog.text)
