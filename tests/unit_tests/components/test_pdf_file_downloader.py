@@ -47,3 +47,21 @@ class TestPdfFileDownloader(unittest.TestCase):
 
         self.assertIn("DataFrame is empty or None", str(context_empty.exception))
         self.assertIn("DataFrame is empty or None", self.__caplog.text)
+
+    def test_if_download_path_does_not_exist(self):
+        """Test if it throws ValueError if download_path does not exist, and if it calls the logger."""
+
+        df = pd.DataFrame({"ID": [1], "Primary Link": ["http://example.com/file.pdf"]})
+
+        with (
+            self.assertRaises(ValueError) as context,
+            self.__caplog.at_level(logging.WARNING),
+        ):
+            self.pdf_file_downloader.download_reports("non_existent_path", df)
+
+        self.assertIn(
+            "Download path 'non_existent_path' does not exist", str(context.exception)
+        )
+        self.assertIn(
+            "Download path 'non_existent_path' does not exist", self.__caplog.text
+        )
