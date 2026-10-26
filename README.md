@@ -10,11 +10,27 @@ Project structure (hidden automatically generated files and folders like .venv n
 │   └── uv_guide.md
 ├── LICENSE
 ├── Nikolai Sandbeck - kravspecifikation til PDF-Downloader.pdf
-├── pyproject.toml
 ├── README.md
+├── dist
+├── downloads
+├── logs
+├── output
+├── pyproject.toml
 ├── src
 │   └── pdf_downloader
-│       └── __init__.py
+│       ├── __init__.py
+│       ├── components
+│       │   ├── __init__.py
+│       │   ├── file_handler.py
+│       │   ├── pdf_file_downloader.py
+│       │   └── sub_components
+│       └── main.py
+├── tests
+│   └── unit_tests
+│       ├── components
+│       │   ├── test_file_handler.py
+│       │   └── test_pdf_file_downloader.py
+│       └── test_main.py
 └── uv.lock
 ```
 
