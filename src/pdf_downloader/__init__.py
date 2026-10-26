@@ -46,7 +46,8 @@ def main() -> None:
 
     setup_logging()
     run_app = Main()
-    run_app.read_line_arguments()
+    run_app.set_line_arguments()
+    run_app.process()
 
 if __name__ == "__main__":
     main()

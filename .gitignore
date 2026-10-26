@@ -11,3 +11,8 @@ wheels/
 
 # log files
 logs/
+
+# customer data
+data/
+downloads/
+output/
