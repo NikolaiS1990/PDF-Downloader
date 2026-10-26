@@ -46,6 +46,16 @@ class Main:
                                 help="Path for the metadata file."
                             )
 
+        parser.add_argument(
+                                "--download_link_column",
+                                required=True,
+                                help="Column with links for downloading."
+                            )
+        parser.add_argument(
+                                "--download_link_column_alternative",
+                                help="Column with links for downloading if the a link in the first column does not work."
+                            )
+
         self.__args = parser.parse_args()
 
         self.logger.info("Arguments received: %s", self.__args)
