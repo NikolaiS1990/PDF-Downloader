@@ -10,11 +10,27 @@ Project structure (hidden automatically generated files and folders like .venv n
 │   └── uv_guide.md
 ├── LICENSE
 ├── Nikolai Sandbeck - kravspecifikation til PDF-Downloader.pdf
-├── pyproject.toml
 ├── README.md
+├── dist
+├── downloads
+├── logs
+├── output
+├── pyproject.toml
 ├── src
 │   └── pdf_downloader
-│       └── __init__.py
+│       ├── __init__.py
+│       ├── components
+│       │   ├── __init__.py
+│       │   ├── file_handler.py
+│       │   ├── pdf_file_downloader.py
+│       │   └── sub_components
+│       └── main.py
+├── tests
+│   └── unit_tests
+│       ├── components
+│       │   ├── test_file_handler.py
+│       │   └── test_pdf_file_downloader.py
+│       └── test_main.py
 └── uv.lock
 ```
 
@@ -60,7 +76,11 @@ uv run pdf-downloader \
     --download_link_column_alternative COLUMN
 ```
 
-# 🧪 Run unit tests (for developers)
+## For developers
+
+## Before submitting
+
+### 🧪 Run unit tests (for developers)
 To run all unit tests, run this line
 ```bash
 uv run pytest tests/ -v
@@ -74,6 +94,17 @@ uv run pytest <filepath> -v
 See what test coverage percentage you have:
 ```bash
 uv run pytest --cov=src/pdf_downloader --cov-report=term-missing
+```
+
+### 🧹 Linting
+#### Let ruff catch syntax errors
+```bash
+uv run ruff check --fix <path to file>
+```
+
+#### Run ruff formatter
+```bash
+uv run ruff format <path to file>
 ```
 
 # 📜 License

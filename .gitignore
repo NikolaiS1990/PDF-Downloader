@@ -5,6 +5,7 @@ build/
 dist/
 wheels/
 *.egg-info
+=3.1.5.20261017
 
 # Virtual environments
 .venv
@@ -14,5 +15,9 @@ logs/
 
 # customer data
 data/
-downloads/
-output/
+
+# Downloaded PDFs
+downloaded_pdfs
+
+# Testing
+.coverage
