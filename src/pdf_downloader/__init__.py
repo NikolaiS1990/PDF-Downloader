@@ -48,6 +48,8 @@ def main() -> None:
     run_app = Main()
     run_app.read_line_arguments()
     run_app.start_program()
+    run_app.set_line_arguments()
+    run_app.process()
 
 if __name__ == "__main__":
     main()

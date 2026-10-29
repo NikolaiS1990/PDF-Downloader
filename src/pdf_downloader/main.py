@@ -22,7 +22,7 @@ class Main:
         self.logger.info("PDF Downloader initialized.")
         self.__file_handler = FileHandler()
 
-    def read_line_arguments(self):
+    def set_line_arguments(self):
         parser = argparse.ArgumentParser(description="PDF Downloader Arguments")
 
         parser.add_argument(
