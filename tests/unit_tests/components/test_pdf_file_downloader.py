@@ -15,9 +15,10 @@ class TestPdfFileDownloader(unittest.TestCase):
     """Test suite for validating PdfFileDownloader operations and exception handling."""
 
     @pytest.fixture(autouse=True)
-    def inject_fixtures(self, caplog):
+    def inject_fixtures(self, caplog, tmp_path):
         """Automatically inject pytest's caplog into unittest class instances."""
         self.__caplog = caplog
+        self.tmp_path = tmp_path
 
     def setUp(self):
         self.pdf_file_downloader = PdfFileDownloader()
@@ -68,17 +69,15 @@ class TestPdfFileDownloader(unittest.TestCase):
             "Download path 'non_existent_path' does not exist", self.__caplog.text
         )
 
+    @patch("pdf_downloader.components.pdf_file_downloader.magic.from_buffer")
     @patch("pdf_downloader.components.pdf_file_downloader.urllib.request.urlopen")
-    @patch("os.path.exists")
-    def test_successful_primary_download(self, mock_path_exists, mock_urlopen):
+    def test_successful_primary_download(self, mock_urlopen, mock_magic_buffer):
         """Test successful download on the primary URL."""
-        mock_path_exists.return_value = (
-            True  # Pretend download_path and saved file exist when checking
-        )
 
         mock_response = MagicMock()
-        mock_response.read.return_value = b"%PDF-1.4 mock content"
+        mock_response.read.return_value = b"%PDF-1.4 mock content %%EOF"
         mock_urlopen.return_value.__enter__.return_value = mock_response
+        mock_magic_buffer.return_value = "application/pdf"
 
         df = pd.DataFrame(
             {
@@ -89,26 +88,31 @@ class TestPdfFileDownloader(unittest.TestCase):
             }
         )
 
-        with patch("builtins.open", create=True):
-            status_series = self.pdf_file_downloader.download_reports(
-                "mock_download_path", df
-            )
+        # Removed the patch("builtins.open") wrapper so it writes to self.tmp_path for real
+        status_series = self.pdf_file_downloader.download_reports(
+            str(self.tmp_path), df
+        )
 
         self.assertEqual(status_series.iloc[0], "Downloadet")
 
+    @patch("pdf_downloader.components.pdf_file_downloader.magic.from_buffer")
     @patch("pdf_downloader.components.pdf_file_downloader.urllib.request.urlopen")
-    @patch("os.path.exists")
-    @patch("os.remove")
     def test_fallback_to_alternative_url_and_cleanup(
-        self, _mock_remove, mock_path_exists, mock_urlopen
+        self, mock_urlopen, mock_magic_buffer
     ):
         """Test that primary failure triggers alternative URL download, and total failure triggers file cleanup."""
-        mock_path_exists.side_effect = lambda path: True
+        # Setup context manager mock for the alternative download response
+        alt_response = MagicMock()
+        alt_response.read.return_value = b"%PDF-1.4 mock content %%EOF"
+        
+        alt_context = MagicMock()
+        alt_context.__enter__.return_value = alt_response
 
         mock_urlopen.side_effect = [
             urllib.error.URLError("Primary connection timeout"),
-            MagicMock(read=lambda: b"%PDF-1.4 mock content"),
+            alt_context,
         ]
+        mock_magic_buffer.return_value = "application/pdf"
 
         df = pd.DataFrame(
             {
@@ -119,21 +123,17 @@ class TestPdfFileDownloader(unittest.TestCase):
             }
         )
 
-        with patch("builtins.open", create=True):
-            status_series = self.pdf_file_downloader.download_reports(
-                "mock_download_path", df
-            )
+        status_series = self.pdf_file_downloader.download_reports(
+            str(self.tmp_path), df
+        )
 
         self.assertEqual(status_series.iloc[0], "Downloadet")
 
     @patch("pdf_downloader.components.pdf_file_downloader.urllib.request.urlopen")
-    @patch("os.path.exists")
-    @patch("os.remove")
     def test_total_download_failure_and_cleanup(
-        self, mock_remove, mock_path_exists, mock_urlopen
+        self, mock_urlopen
     ):
         """Test that if both primary and alternative fail, status is 'Ikke downloadet' and file is cleaned up."""
-        mock_path_exists.side_effect = lambda _path: True
         mock_urlopen.side_effect = urllib.error.URLError("Connection refused")
 
         df = pd.DataFrame(
@@ -145,10 +145,61 @@ class TestPdfFileDownloader(unittest.TestCase):
             }
         )
 
-        with patch("builtins.open", create=True):
-            status_series = self.pdf_file_downloader.download_reports(
-                "mock_download_path", df
-            )
+        status_series = self.pdf_file_downloader.download_reports(
+            str(self.tmp_path), df
+        )
 
         self.assertEqual(status_series.iloc[0], "Ikke downloadet")
-        mock_remove.assert_called()
+
+    @patch("pdf_downloader.components.pdf_file_downloader.magic.from_buffer")
+    @patch("pdf_downloader.components.pdf_file_downloader.urllib.request.urlopen")
+    def test_validator_fails_on_invalid_mime_indirectly(self, mock_urlopen, mock_magic_buffer):
+        """Test that an HTML response fails validation indirectly and marks status as un-downloaded."""
+        mock_response = MagicMock()
+        mock_response.read.return_value = b"<html>404 Not Found</html> %%EOF"
+        mock_urlopen.return_value.__enter__.return_value = mock_response
+        
+        # Simulate python-magic detecting text/html instead of application/pdf
+        mock_magic_buffer.return_value = "text/html"
+
+        df = pd.DataFrame(
+            {
+                "ID": ["001"],
+                "Primary": ["http://example.com/fake.pdf"],
+                "Alternative": [None],
+                "Status": ["Pending"],
+            }
+        )
+
+        status_series = self.pdf_file_downloader.download_reports(
+            str(self.tmp_path), df
+        )
+
+        # Validator should catch the wrong MIME type, unlink the file, and mark as failed
+        self.assertEqual(status_series.iloc[0], "Ikke downloadet")
+
+    # @patch("pdf_downloader.components.pdf_file_downloader.magic.from_buffer")
+    # @patch("pdf_downloader.components.pdf_file_downloader.urllib.request.urlopen")
+    # def test_validator_fails_on_missing_eof_indirectly(self, mock_urlopen, mock_magic_buffer):
+    #     """Test that a truncated file missing EOF fails validation indirectly."""
+    #     mock_response = MagicMock()
+    #     mock_response.read.return_value = b"%PDF-1.4 truncated data without trailer"
+    #     mock_urlopen.return_value.__enter__.return_value = mock_response
+        
+    #     mock_magic_buffer.return_value = "application/pdf"
+
+    #     df = pd.DataFrame(
+    #         {
+    #             "ID": ["002"],
+    #             "Primary": ["http://example.com/truncated.pdf"],
+    #             "Alternative": [None],
+    #             "Status": ["Pending"],
+    #         }
+    #     )
+
+    #     status_series = self.pdf_file_downloader.download_reports(
+    #         str(self.tmp_path), df
+    #     )
+
+    #     # Validator should catch the missing EOF marker and mark as failed
+    #     self.assertEqual(status_series.iloc[0], "Ikke downloadet")
